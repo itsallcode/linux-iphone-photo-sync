@@ -66,12 +66,12 @@ mount_iphone() {
 }
 
 sync_photos() {
-    echo "Synchronizing photos from \"$photo_source_dir\" to \"$photo_target_dir\"..."
+    echo "Synchronizing photos from \"$photo_source_dir\" to \"$photo_target_dir\" ..."
     rsync --archive --progress --human-readable --delete "$photo_source_dir/" "$photo_target_dir/"
 }
 
 export_to_jpeg() {
-    echo "Exporting HEIC from \"$photo_target_dir\" to JPEGs \"$jpg_export_dir\"..."
+    echo "Exporting HEIC from \"$photo_target_dir\" to JPEGs \"$jpg_export_dir\" ..."
     trap "echo 'Exporting to JPEG interrupted. Exiting...'; exit 1;" SIGINT SIGTERM
 
     while IFS= read -r -d '' source_file; do
@@ -90,7 +90,7 @@ export_to_jpeg() {
 }
 
 sync_existing_jpgs() {
-    echo "Exporting HEIC from \"$photo_target_dir\" to JPEGs \"$jpg_export_dir\"..."
+    echo "Synchronizing existing JPEGS from \"$photo_target_dir\" to JPEGs \"$jpg_export_dir\" ..."
     rsync -m --include='*.jpg' --include='*.JPG' --include='*.jpeg' --include="*,JPEG" \
         --exclude='*' -a --progress "$photo_target_dir/" "$jpg_export_dir/"
 }
@@ -98,7 +98,7 @@ sync_existing_jpgs() {
 unmount_iphone() {
     if mountpoint -q "${iphone_fuse_dir}"; then
         echo "Unmounting iPhone from \"${iphone_fuse_dir}\"."
-        if umount "${iphone_fuse_dir}"; then
+        if fusermount -u "${iphone_fuse_dir}"; then
             echo "Successfully unmounted iPhone. You can unplug it now."
         else
             echo "Failed to unmount iPhone. You might need to sudo or check if other processes are using files within the mounted directory."
@@ -108,11 +108,17 @@ unmount_iphone() {
     fi
 }
 
-create_directories_if_missing &&
-pair_iphone &&
-mount_iphone &&
-sync_photos &&
-unmount_iphone &&
+create_directories_if_missing || exit "$exit_software"
+
+if idevice_id -l >/dev/null 2>&1; then
+    pair_iphone &&
+    mount_iphone &&
+    sync_photos &&
+    unmount_iphone || exit "$exit_software"
+else
+    echo "Currently no iPhone seems to be connected. Skipping ahead to JPEG conversion of already synchronized photos."
+fi
+
 sync_existing_jpgs &&
 export_to_jpeg || exit "$exit_software"
 
