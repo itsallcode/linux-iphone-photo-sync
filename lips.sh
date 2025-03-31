@@ -99,7 +99,7 @@ unmount_iphone() {
     if mountpoint -q "${iphone_fuse_dir}"; then
         echo "Unmounting iPhone from \"${iphone_fuse_dir}\"."
         if umount "${iphone_fuse_dir}"; then
-            echo "Successfully unmounted iPhone."
+            echo "Successfully unmounted iPhone. You can unplug it now."
         else
             echo "Failed to unmount iPhone. You might need to sudo or check if other processes are using files within the mounted directory."
         fi
@@ -112,7 +112,8 @@ create_directories_if_missing &&
 pair_iphone &&
 mount_iphone &&
 sync_photos &&
-export_to_jpeg &&
-unmount_iphone || exit "$exit_software"
+unmount_iphone &&
+sync_existing_jpgs &&
+export_to_jpeg || exit "$exit_software"
 
 exit "$exit_ok"

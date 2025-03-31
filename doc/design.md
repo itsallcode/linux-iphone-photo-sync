@@ -115,3 +115,12 @@ LIPS exports JPEGs to `<pictures>/exported_jpgs`.
 Covers:
 
 * `req~jpeg-incremental-conversion~1`
+
+### Copy Existing JPEGs
+`dsn~copy-existing-jpegs~1`
+
+LIPS uses `rsync` to copy existing JPEGs to the export directory.
+
+Covers:
+
+* `req~jpeg-incremental-conversion~1`
