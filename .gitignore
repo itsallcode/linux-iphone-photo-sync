@@ -1,0 +1,12 @@
+# JetBrains IDE
+.idea/
+*.iml
+*.iws
+
+*.gz
+*.tar
+*.zip
+*.log
+*.lock
+~*
+*.bak
